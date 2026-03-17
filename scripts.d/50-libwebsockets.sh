@@ -52,9 +52,8 @@ includedir=\${prefix}/include
 Name: libwebsockets
 Description: lightweight C websockets library
 Version: 4.5.4
-Requires.private: libssl libcrypto zlib
 Cflags: -I\${includedir}
-Libs: -L\${libdir} -lwebsockets
+Libs: -L\${libdir} -lwebsockets_static
 EOF
 
     if [[ $TARGET == win* ]]; then
