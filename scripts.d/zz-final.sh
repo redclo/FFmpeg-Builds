@@ -43,6 +43,7 @@ ffbuild_depends() {
     echo libtheora
     echo libvpx
     echo libwebp
+    echo libwebsockets
     echo libzmq
     echo lilv
     echo onevpl
