@@ -20,7 +20,7 @@ rm -rf ffbuild
 mkdir ffbuild
 
 # Optional local FFmpeg checkout to avoid cloning inside the container.
-LOCAL_FFMPEG_PATH="${LOCAL_FFMPEG_PATH:-/mnt/d/longhang/ffmpeg-n8.0.1}"
+LOCAL_FFMPEG_PATH="${LOCAL_FFMPEG_PATH:-/root/ffmpeg}"
 
 FFMPEG_REPO="${FFMPEG_REPO:-https://github.com/FFmpeg/FFmpeg.git}"
 FFMPEG_REPO="${FFMPEG_REPO_OVERRIDE:-$FFMPEG_REPO}"
@@ -48,7 +48,7 @@ cat <<EOF >"$BUILD_SCRIPT"
     fi
 
     test -f configure
-    bash ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
+    bash ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" --enable-libwebsockets \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
         --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
         --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS" \
         --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
