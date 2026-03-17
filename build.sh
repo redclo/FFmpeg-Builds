@@ -19,6 +19,9 @@ fi
 rm -rf ffbuild
 mkdir ffbuild
 
+# Optional local FFmpeg checkout to avoid cloning inside the container.
+LOCAL_FFMPEG_PATH="${LOCAL_FFMPEG_PATH:-/mnt/d/longhang/ffmpeg-n8.0.1}"
+
 FFMPEG_REPO="${FFMPEG_REPO:-https://github.com/FFmpeg/FFmpeg.git}"
 FFMPEG_REPO="${FFMPEG_REPO_OVERRIDE:-$FFMPEG_REPO}"
 GIT_BRANCH="${GIT_BRANCH:-master}"
@@ -32,10 +35,20 @@ cat <<EOF >"$BUILD_SCRIPT"
     cd /ffbuild
     rm -rf ffmpeg prefix
 
-    git clone --filter=blob:none --branch='$GIT_BRANCH' '$FFMPEG_REPO' ffmpeg
-    cd ffmpeg
+    if [ -f "/ffmpeg-src/configure" ]; then
+        echo ">>> Using local FFmpeg source from /ffmpeg-src"
+        mkdir ffmpeg
+        cp -a /ffmpeg-src/. ffmpeg/
+        cd ffmpeg
+        rm -rf .git
+    else
+        echo ">>> Local source not usable, falling back to git clone"
+        git clone --filter=blob:none --branch='$GIT_BRANCH' '$FFMPEG_REPO' ffmpeg
+        cd ffmpeg
+    fi
 
-    ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
+    test -f configure
+    bash ./configure --prefix=/ffbuild/prefix --pkg-config-flags="--static" \$FFBUILD_TARGET_FLAGS \$FF_CONFIGURE \
         --extra-cflags="\$FF_CFLAGS" --extra-cxxflags="\$FF_CXXFLAGS" --extra-libs="\$FF_LIBS" \
         --extra-ldflags="\$FF_LDFLAGS" --extra-ldexeflags="\$FF_LDEXEFLAGS" \
         --cc="\$CC" --cxx="\$CXX" --ar="\$AR" --ranlib="\$RANLIB" --nm="\$NM" \
@@ -46,7 +59,7 @@ EOF
 
 [[ -t 1 ]] && TTY_ARG="-t" || TTY_ARG=""
 
-docker run --rm -i $TTY_ARG "${UIDARGS[@]}" -v "$PWD/ffbuild":/ffbuild -v "$BUILD_SCRIPT":/build.sh "$IMAGE" bash /build.sh
+docker run --rm -i $TTY_ARG "${UIDARGS[@]}" -v "$PWD/ffbuild":/ffbuild -v "$BUILD_SCRIPT":/build.sh -v "$LOCAL_FFMPEG_PATH":/ffmpeg-src:ro "$IMAGE" bash /build.sh
 
 if [[ -n "$FFBUILD_OUTPUT_DIR" ]]; then
     mkdir -p "$FFBUILD_OUTPUT_DIR"
